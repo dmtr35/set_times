@@ -30,7 +30,6 @@ void restor_meta(char *path_file, struct database *db, int flag_info)
             
             strncpy(str_data, buffer, end);
             str_data[end] = '\0';
-            // printf("%s\n", str_data);
             
             // ===========================================================
             set_timespec(&times[1].tv_nsec, str_data, 1);
@@ -44,10 +43,9 @@ void restor_meta(char *path_file, struct database *db, int flag_info)
                 errExit("lstat");
             
             
-            if (sb.st_ino == saved_inode && sb.st_dev == saved_dev) {
+            if (sb.st_ino == saved_inode && sb.st_dev == saved_dev)
                 if (utimensat(AT_FDCWD, str_data, times, 0) == -1)
-                errExit("utimensat");
-            }
+                    errExit("utimensat");
             
             if(lstat(str_data, &sb) == -1)
                 errExit("lstat");

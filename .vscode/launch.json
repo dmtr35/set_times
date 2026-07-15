@@ -1,0 +1,41 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "GCC build and debug active file",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/set_times",
+
+            // "args": ["startup"],                                   // 1 аргумент / 2 аргумента
+            // "args": ["-t", "/programing/new", "1999-07-06 16:30:13.666666666", "1999-07-06 16:33:32.111111111"],                // 4 аргумента / 5 аргументов. вместо времени можно написать "-"
+            // "args": ["-t", "TEST_FOLDER!/file1", "1999-07-06 16:30:13.666666666", "1999-07-06 16:33:32.111111111"],                // 4 аргумента / 5 аргументов. вместо времени можно написать "-"
+            // "args": ["-t", "startup", "2012-12-12 12:12:12.222222222", "-"],
+            // "args": ["-s", "-R", "TEST_FOLDER!", "/tmp/rot"],                         // 3 аргумента / 4 аргумента
+            // "args": ["-r", "TEST_FOLDER!", "/tmp/rot"],                         // 3 аргумента / 4 аргумента
+            "args": ["-h"],
+
+
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "C/C++: gcc build active file",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "logging": {
+                "trace": true,
+                "traceResponse": true,
+                "engineLogging": true
+            },
+            "internalConsoleOptions": "openOnSessionStart"
+        }
+    ]
+}

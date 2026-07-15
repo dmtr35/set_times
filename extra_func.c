@@ -17,29 +17,88 @@ void set_timespec(void *ts, char *str_data, int flag_type)
 }
 
 
-void set_time(char *path_file, struct database *db,  a_m_time amt, int flag_info)
+void set_time(char *path_file, char *a_time, char *m_time, struct database *db, int flag_info)
 {
-    struct stat sb;
     struct timespec times[2];
-    int fd;
+    struct stat sb;
+    int res = 0;
+    
+    split_time(a_time, &times[0]);
+    split_time(m_time, &times[1]);
+    
 
-    char *str = "2024-07-06 16:30:13";
+    if (utimensat(AT_FDCWD, path_file, times, 0) == -1)
+        errExit("utimensat");
 
+
+    if(lstat(path_file, &sb) == -1)
+        errExit("lstat");
+
+    add_to_arr(path_file, &sb, db);
+    
+    if (!check_timespec(&times[0], &sb.st_atim))
+        printf("Access time was not restored exactly\n");
+    if (!check_timespec(&times[1], &sb.st_mtim))
+        printf("Modify time was not restored exactly\n");
+
+    if(flag_info)
+        print_info(db); 
+}
+
+void split_time(char *timestamp, struct timespec *time)
+{
     struct tm tm = {0};
-    if (strptime(str, "%Y-%m-%d %H:%M:%S", &tm) == NULL) {
-        printf("Ошибка разбора\n");
+
+    memset(time, 0, sizeof(*time));
+
+    if (strlen(timestamp) == 1 && strchr(timestamp, '-') != NULL) {
+        time->tv_nsec = UTIME_OMIT;
         return;
     }
 
-    time_t t = mktime(&tm);
+    char *dot = strchr(timestamp, '.');
+    if (dot != NULL)
+        *dot = '\0';
 
-    printf("%ld\n", (long)t);
+    if (strptime(timestamp, "%Y-%m-%d %H:%M:%S", &tm) == NULL) {
+        err_exit("Ошибка разбора времени");
+    }
+    
+    time->tv_sec = mktime(&tm);
+    time->tv_nsec = (long) strtol(dot + 1, NULL, 10);
 }
 
-// split_time()
-// {
-//     printf("gg");
-// }
+
+void add_to_arr(char *path, struct stat *sb, database *db)
+{
+    if(db->capacity == db->count) {
+        db->capacity *= 2;
+        
+        struct file_info *tmp = realloc(db->files, db->capacity * sizeof(struct file_info));
+
+        if (tmp == NULL)
+            errExit("realloc");
+
+        db->files = tmp;
+    }
+
+    db->files[db->count].path = strdup(path);
+    if (db->files[db->count].path == NULL)
+        errExit("strdup");
+
+    db->files[db->count].atime = sb->st_atim;
+    db->files[db->count].ctime = sb->st_ctim;
+    db->files[db->count].mtime = sb->st_mtim;
+    db->files[db->count].inode = sb->st_ino;
+    db->files[db->count].device = sb->st_dev;
+    db->files[db->count].uid = sb->st_uid;
+    db->files[db->count].gid = sb->st_gid;
+    db->files[db->count].mode = sb->st_mode;
+    db->files[db->count].size = sb->st_size;
+
+    (db->count)++;
+}
+
 
 void free_database(struct database *db)
 {
